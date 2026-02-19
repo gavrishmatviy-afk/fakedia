@@ -19,17 +19,16 @@ from telegram.ext import (
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-# ✅ ВПИШИ СЮДИ ID ДВОХ МЕНЕДЖЕРІВ (через кому)
-# приклад: ADMIN_IDS = {123456789, 987654321}
-ADMIN_IDS = {5561735675,8498402017}  # <-- ЗАМІНИ НА РЕАЛЬНІ
+# ✅ Менеджери (user_id)
+ADMIN_IDS = {8498402017, 5561735675}
 
-# ---- Налаштування (можеш міняти) ----
+# ---- Налаштування ----
 CARD_NUMBER = "4874 0700 5229 8484"
 ANDROID_PRICE = "140₴"
 IOS_PRICE = "170₴"
 ANDROID_APK_PATH = "files/app_android.apk"
 IOS_TEXT_LINK = "👉 @funpapers_bot"
-# ------------------------------------
+# ----------------------
 
 # --- Flask (Render порт) ---
 app_flask = Flask(__name__)
@@ -90,8 +89,9 @@ async def android_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📱 Ви обрали Android.\n\n"
         f"💳 Оплата на картку:\n{CARD_NUMBER}\n\n"
         f"💰 Сума: {ANDROID_PRICE}\n\n"
-        f"⚠️ Після оплати надішліть свій Telegram-юзернейм.\n\n"
-        f"Потім натисніть ✅ Я оплатив або ❌ Відмінити.",
+        f"⚠️ ВАЖЛИВО: Після оплати обов'язково надішліть у чат свій Telegram-юзернейм, "
+        f"щоб ми могли підтвердити оплату.\n\n"
+        f"Після цього натисніть кнопку ✅ Я оплатив, або ❌ Відмінити.",
         reply_markup=paid_keyboard(),
     )
 
@@ -101,17 +101,14 @@ async def ios_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🍎 Ви обрали iOS.\n\n"
         f"💳 Оплата на картку:\n{CARD_NUMBER}\n\n"
         f"💰 Сума: {IOS_PRICE}\n\n"
-        f"⚠️ Після оплати надішліть свій Telegram-юзернейм.\n\n"
-        f"Потім натисніть ✅ Я оплатив або ❌ Відмінити.",
+        f"⚠️ ВАЖЛИВО: Після оплати обов'язково надішліть у чат свій Telegram-юзернейм, "
+        f"щоб ми могли підтвердити оплату.\n\n"
+        f"Після цього натисніть кнопку ✅ Я оплатив, або ❌ Відмінити.",
         reply_markup=paid_keyboard(),
     )
 
 # --- Натиснув "Я оплатив" ---
 async def paid(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not ADMIN_IDS or ADMIN_IDS == {111111111, 222222222}:
-        await update.message.reply_text("❌ Не налаштовано ADMIN_IDS (впиши ID менеджерів у код).")
-        return
-
     platform = context.user_data.get("platform")
     if platform not in ("android", "ios"):
         await update.message.reply_text("Спочатку обери платформу: /start")
@@ -154,7 +151,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=platform_keyboard(),
     )
 
-# --- Натиснув менеджер ---
+# --- Натиснув менеджер (inline-кнопки) ---
 async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -188,6 +185,7 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     text=f"❌ Файл не знайдено на сервері: {ANDROID_APK_PATH}"
                 )
                 return
+
             with open(ANDROID_APK_PATH, "rb") as f:
                 await context.bot.send_document(chat_id=buyer_chat_id, document=f)
         else:
@@ -202,6 +200,7 @@ def run_bot():
         raise RuntimeError("BOT_TOKEN is missing. Add it in Render Environment Variables.")
 
     print("[BOOT] TOKEN exists:", bool(TOKEN))
+    print("[BOOT] ADMIN_IDS:", ",".join(map(str, sorted(ADMIN_IDS))))
     print("[BOT] Starting Telegram bot polling...")
 
     app = ApplicationBuilder().token(TOKEN).build()
