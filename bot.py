@@ -15,10 +15,24 @@ def home():
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
-    app_flask.run(host="0.0.0.0", port=port)
+    print(f"[FLASK] Starting on port {port}")
+    # threaded=True щоб не блокувалось
+    app_flask.run(host="0.0.0.0", port=port, threaded=True)
 
-# --- Telegram бот ---
+# --- Telegram bot ---
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "✅ Я працюю!\n\n"
+        "Відповідай на повідомлення і пиши:\n"
+        "/send_file android\n"
+        "або\n"
+        "/send_file ios"
+    )
+
 async def send_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message:
+        return
+
     if not update.message.reply_to_message:
         await update.message.reply_text(
             "Відповідай на повідомлення та пиши:\n/send_file android або /send_file ios"
@@ -33,21 +47,4 @@ async def send_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     target_chat_id = update.message.reply_to_message.chat.id
 
     if platform == "android":
-        with open("files/android.apk", "rb") as file:
-            await context.bot.send_document(chat_id=target_chat_id, document=file)
-
-    elif platform == "ios":
-        await context.bot.send_message(
-            chat_id=target_chat_id,
-            text="🍎 Для iPhone переходь сюди:\n👉 @funpapers_bot"
-        )
-
-def run_bot():
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("send_file", send_file))
-    app.run_polling()
-
-# --- Запуск обох ---
-if __name__ == "__main__":
-    threading.Thread(target=run_flask).start()
-    run_bot()
+        path = "files/app_android.apk_
