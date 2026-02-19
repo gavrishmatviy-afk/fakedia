@@ -47,7 +47,7 @@ async def send_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     target_chat_id = update.message.reply_to_message.chat.id
 
     if platform == "android":
-        path = "files/app_android.apk"  # <- твій файл
+        path = "files/app_android.apk"
         if not os.path.exists(path):
             await update.message.reply_text(f"❌ Файл не знайдено: {path}")
             return
