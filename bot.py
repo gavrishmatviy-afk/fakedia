@@ -47,4 +47,40 @@ async def send_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     target_chat_id = update.message.reply_to_message.chat.id
 
     if platform == "android":
-        path = "files/app_android.apk_
+        path = "files/app_android.apk"  # <- твій файл
+        if not os.path.exists(path):
+            await update.message.reply_text(f"❌ Файл не знайдено: {path}")
+            return
+
+        with open(path, "rb") as file:
+            await context.bot.send_document(chat_id=target_chat_id, document=file)
+
+    elif platform == "ios":
+        await context.bot.send_message(
+            chat_id=target_chat_id,
+            text="🍎 Для iPhone переходь сюди:\n👉 @funpapers_bot"
+        )
+    else:
+        await update.message.reply_text("Вкажи тільки: android або ios")
+
+def run_bot():
+    if not TOKEN:
+        raise RuntimeError("BOT_TOKEN is missing. Add it in Render Environment Variables.")
+
+    print("[BOT] Starting Telegram bot polling...")
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("send_file", send_file))
+
+    app.run_polling()
+
+# --- Запуск обох ---
+if __name__ == "__main__":
+    print("[BOOT] TOKEN exists:", bool(TOKEN))
+
+    # Flask у окремому потоці
+    threading.Thread(target=run_flask, daemon=True).start()
+
+    # Bot в головному потоці
+    run_bot()
